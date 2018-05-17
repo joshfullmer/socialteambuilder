@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block title %}Sign Up | {{ super }}{% endblock %}
+
+{% block content %}
+  <div class="bounds">
+    <div class="grid-30 centered">
+      <h2>Sign Up</h2>
+      <form method="POST" action="{% url 'teams:sign_up' %}">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" class="button-primary" value="Sign Up">
+        <a class="button" href="{% url 'teams:login' %}">Login</a>
+      </form>
+    </div>
+  </div>
+{% endblock %}
