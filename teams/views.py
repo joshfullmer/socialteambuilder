@@ -1,15 +1,17 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
-from . import forms
+from . import models, forms
 
 
 # Create your views here.
 def home(request):
-    return render(request, 'layout.html', {})
+    return render(request, 'teams/home.html', {})
 
 
 def sign_up(request):
@@ -27,7 +29,7 @@ def sign_up(request):
                 request,
                 "You're now a user! You've been signed in, too."
             )
-            return HttpResponseRedirect(reverse('teams:home'))
+            return HttpResponseRedirect(reverse('teams:profile'))
     return render(request, 'teams/sign_up.html', {'form': form})
 
 
@@ -41,7 +43,7 @@ def login_user(request):
                 if user.is_active:
                     login(request, user)
                     return HttpResponseRedirect(
-                        reverse('teams:home')  # TODO: go to profile
+                        reverse('teams:profile')  # TODO: go to profile
                     )
                 else:
                     messages.error(
@@ -56,7 +58,110 @@ def login_user(request):
     return render(request, 'teams/login.html', {'form': form})
 
 
+@login_required
 def logout_user(request):
     logout(request)
     messages.success(request, "You've been signed out. Come back soon!")
     return HttpResponseRedirect(reverse('teams:home'))
+
+
+@login_required
+def profile_detail(request):
+    try:
+        user_profile = models.UserProfile.objects.get(user=request.user)
+    except ObjectDoesNotExist:
+        user_profile = None
+    return render(
+        request,
+        'teams/profile.html',
+        {'selected': 'profile', 'user_profile': user_profile})
+
+
+@login_required
+def profile_edit(request):
+    new = True
+    try:
+        profile = models.UserProfile.objects.get(user=request.user)
+        new = False
+    except ObjectDoesNotExist:
+        profile = None
+    form = forms.UserProfileForm(instance=profile)
+    if request.method == "POST":
+        form = forms.UserProfileForm(
+            request.POST,
+            request.FILES,
+            instance=profile)
+        if form.is_valid():
+            user_profile = form.save(commit=False)
+            user_profile.user = request.user
+            user_profile.save()
+            return HttpResponseRedirect(reverse('teams:profile'))
+    return render(
+        request,
+        'teams/profile_edit.html',
+        {'selected': 'profile', 'form': form, 'new': new})
+
+
+@login_required
+def project_detail(request, pk):
+    project = get_object_or_404(models.Project, pk=pk)
+    return render(
+        request,
+        'teams/project.html',
+        {'project': project})
+
+
+@login_required
+def project_edit(request, pk=None):
+    new = True
+    if pk:
+        try:
+            project = models.Project.objects.get(pk=pk)
+            project_positions = models.ProjectPosition.objects.filter(
+                project=project)
+            new = False
+        except ObjectDoesNotExist:
+            project = None
+    else:
+        project = None
+    form = forms.ProjectForm(instance=project)
+    formset = forms.ProjectPositionFormSet(queryset=project_positions)
+    if request.method == "POST":
+        form = forms.ProjectForm(
+            request.POST,
+            instance=project)
+        formset = forms.ProjectPositionFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            new_project = form.save(commit=False)
+            new_project.user = request.user
+            new_project.save()
+            formset.save()
+            messages.success(
+                request,
+                f"Project \"{new_project.title}\" "
+                f"{'created' if new else 'updated'}.")
+            return HttpResponseRedirect(
+                reverse('teams:project', args=(new_project.id,)))
+        else:
+            print(formset.errors)
+
+    return render(
+        request,
+        'teams/project_edit.html',
+        {'form': form, 'formset': formset, 'new': new})
+
+
+@login_required
+def project_delete(request, pk):
+    project = get_object_or_404(models.Project, pk=pk)
+    messages.success(request, f"Project \"{project.title}\" deleted.")
+    project.delete()
+    return HttpResponseRedirect(reverse('teams:home'))
+
+
+@login_required
+def application_list(request):
+    return render(
+        request,
+        'teams/applications.html',
+        {'selected': 'applications'})

@@ -7,14 +7,22 @@ $( document ).ready(function() {
   $(".circle--clone--list").on("click", ".circle--clone--add", function(){
     var parent = $(this).parent("li");
     var copy = parent.clone();
-    parent.after(copy);
+    $(this).parents("ul").append(copy);
     copy.find("input, textarea, select").val("");
     copy.find("*:first-child").focus();
+    copy.children().each(function() {
+      console.log($(this).attr('id')) // Replace with modifying all names and ids
+    });
   });
 
   $(".circle--clone--list").on("click", "li:not(:only-child) .circle--clone--remove", function(){
     var parent = $(this).parent("li");
-    parent.remove();
+    if (parent.children("[id$='-id']").val()) {
+      parent.children('input.hidden-delete').prop('checked', true);
+      parent.hide();
+    } else {
+      parent.remove();
+    };
   });
 
   // Adds class to selected item

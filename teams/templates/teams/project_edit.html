@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+
+{% load team_extras %}
+
+{% block content %}
+<form method="POST" action="{% if new %}{% url 'teams:project_new' %}{% else %}{% url 'teams:project_edit' pk=form.instance.pk %}{% endif %}">
+    {% csrf_token %}
+    <div class="circle--actions--bar">
+        <div class="bounds">
+            <div class="grid-100">
+                <input type="submit" class="button button-primary" value="Save {% if new %}Project{% else %}Changes{% endif %}" />
+                {% if new %}
+                <a class="button button-text" href="{% url 'teams:home' %}">Discard</a>
+                {% else %}
+                <a class="button button-text" href="{% url 'teams:project_delete' pk=form.instance.pk %}">Delete Project</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="bounds circle--page circle--article">
+        <div class="grid-70">
+            <div class="circle--article--body">
+                {{ form.title|cssclass:"circle--input--h1" }}
+                {{ form.description }}
+            </div>
+
+            <!-- Test -->
+            <div class="circle--project--positions">
+                <h2>Positions</h2>
+                {{ formset.management_form }}
+                <ul class="circle--group--list circle--clone--list">
+                    {% for f in formset %}
+                    <li>
+                        {{ f.id.as_hidden }}
+                        {{ f.position|cssclass:"circle--input--h3" }}
+                        {{ f.description }}
+                        <a class="circle--clone--add">Add Position</a>
+                        <a class="circle--clone--remove">Remove</a>
+                        {{ f.DELETE|cssclass:"hidden-delete" }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                <input type="submit" class="button button-primary" value="Save Project" />
+            </div>
+
+            <!--
+            <div class="circle--project--positions">
+                <h2>Positions</h2>
+
+                <ul class="circle--group--list circle--clone--list">
+                    <li>
+                        <input type="text" class="circle--input--h3" placeholder="Position Title" />
+                        <textarea placeholder="Position description..."></textarea>
+                        <a class="circle--clone--add">Add Position</a>
+                        <a class="circle--clone--remove">Remove</a>
+                    </li>
+                </ul>
+                <input type="submit" class="button button-primary" value="Save Project" />
+            </div>
+            -->
+        </div>
+
+        <div class="grid-25 grid-push-5">
+
+            <div class="circle--secondary--module">
+                <h3>Project Timeline</h3>
+                {{ form.time_estimate|cssclass:"circle--textarea--input" }}
+            </div>
+
+            <div class="circle--secondary--module">
+                <h3>Applicant Requirements</h3>
+                {{ form.requirements|cssclass:"circle--textarea--input" }}
+            </div>
+
+        </div>
+    </div>
+</form>
+{% endblock %}

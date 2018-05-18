@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ user.username }}'s Account | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="circle--actions--bar">
+    <nav class="bounds">
+        <ul class="circle--pill--list">
+            <li><a class="{% if selected == 'applications' %}selected{% endif %}" href="{% url 'teams:applications' %}">Applications</a></li>
+            <li><a class="{% if selected == 'profile' %}selected{% endif %}" href="{% url 'teams:profile' %}">Profile</a></li>
+        </ul>
+    </nav>
+</div>
+{% block account_tab %}{% endblock %}
+{% endblock %}

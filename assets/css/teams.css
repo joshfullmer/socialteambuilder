@@ -1,0 +1,38 @@
+.user-profile:before {
+    content: none;
+}
+
+.avatar-edit:before {
+    content: none;
+}
+
+.profile-pic {
+    max-width: 100%;
+    vertical-align: top;
+    opacity: 1;
+    transition: .5s ease;
+    backface-visibility: hidden;
+}
+
+.edit {
+    transition: .5s ease;
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.avatar-edit:hover .profile-pic {
+    opacity: 0.3;
+}
+
+.avatar-edit:hover .edit {
+    opacity: 1;
+}
+
+input.hidden-delete {
+    display: none;
+}
