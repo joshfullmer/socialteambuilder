@@ -1,25 +1,24 @@
-{% extends "teams/account.html" %}
+{% extends "layout.html" %}
 
 {% load static %}
 
-{% block account_tab %}
+{% block title %}{{ user.username }}'s Profile | {{ block.super }}{% endblock %}
+
+{% block content %}
 <div class="bounds circle--page">
     <div class="circle--page--header circle--fluid">
         <div class="circle--fluid--cell circle--fluid--primary">
             <h2>Profile</h2>
         </div>
-        <div class="circle--fluid--cell circle--fluid--secondary">
-            <a class="button icon-on-left" href="{% url 'teams:profile_edit' %}">Edit</a>
-        </div>
     </div>
 
     <div class="grid-70">
-        <h1>{% if user_profile %}{{ user_profile.full_name }}{% else %}Hello, {{ user.username }}{% endif %}</h1>
+        <h1>{% if user_profile %}{{ user_profile.full_name }}{% else %}{{ user.username }}{% endif %}</h1>
         <div class="circle--article--body">
             {% if user_profile %}
                 {{ user_profile.description }}
             {% else %}
-            <p>It looks like you haven't created your user profile yet.  Click the Edit button above to add your name, skills, and past projects. </p>
+            <p>It looks like this user hasn't created their user profile yet.</p>
             {% endif %}
         </div>
 

@@ -10,8 +10,19 @@ from . import models, forms
 
 
 # Create your views here.
-def home(request):
-    return render(request, 'teams/home.html', {})
+def home(request, position_pk=None):
+    positions = models.Position.objects.all()
+    if position_pk:
+        project_positions = models.ProjectPosition.objects.filter(
+            position__pk=position_pk)
+    else:
+        project_positions = models.ProjectPosition.objects.all()
+    return render(
+        request,
+        'teams/home.html',
+        {'positions': positions,
+         'position_pk': position_pk,
+         'project_positions': project_positions})
 
 
 def sign_up(request):
@@ -71,10 +82,29 @@ def profile_detail(request):
         user_profile = models.UserProfile.objects.get(user=request.user)
     except ObjectDoesNotExist:
         user_profile = None
+    projects = models.Project.objects.filter(user=request.user)
     return render(
         request,
         'teams/profile.html',
-        {'selected': 'profile', 'user_profile': user_profile})
+        {'selected': 'profile',
+         'user_profile': user_profile,
+         'projects': projects})
+
+
+@login_required
+def profile_detail_with_pk(request, pk):
+    user = get_object_or_404(models.User, pk=pk)
+    try:
+        user_profile = models.UserProfile.objects.get(user=user)
+    except ObjectDoesNotExist:
+        user_profile = None
+    projects = models.Project.objects.filter(user=user)
+    return render(
+        request,
+        'teams/user_profile.html',
+        {'user': user,
+         'user_profile': user_profile,
+         'projects': projects})
 
 
 @login_required
@@ -105,10 +135,19 @@ def profile_edit(request):
 @login_required
 def project_detail(request, pk):
     project = get_object_or_404(models.Project, pk=pk)
+    project_positions = models.ProjectPosition.objects.filter(project__pk=pk)
+    project_owner = get_object_or_404(models.User, pk=project.user.pk)
+    try:
+        display_name = project_owner.profile.full_name
+    except ObjectDoesNotExist:
+        display_name = project_owner.username
     return render(
         request,
         'teams/project.html',
-        {'project': project})
+        {'project': project,
+         'positions': project_positions,
+         'project_owner': project_owner,
+         'display_name': display_name})
 
 
 @login_required
@@ -124,6 +163,7 @@ def project_edit(request, pk=None):
             project = None
     else:
         project = None
+        project_positions = models.ProjectPosition.objects.none()
     form = forms.ProjectForm(instance=project)
     formset = forms.ProjectPositionFormSet(queryset=project_positions)
     if request.method == "POST":
@@ -135,15 +175,23 @@ def project_edit(request, pk=None):
             new_project = form.save(commit=False)
             new_project.user = request.user
             new_project.save()
-            formset.save()
+            instances = formset.save(commit=False)
+            for obj in formset.deleted_objects:
+                obj.delete()
+            for each in instances:
+                if not each.id:
+                    models.ProjectPosition.objects.create(
+                        project=new_project,
+                        position=each.position,
+                        description=each.description)
+                else:
+                    each.save()
             messages.success(
                 request,
                 f"Project \"{new_project.title}\" "
                 f"{'created' if new else 'updated'}.")
             return HttpResponseRedirect(
                 reverse('teams:project', args=(new_project.id,)))
-        else:
-            print(formset.errors)
 
     return render(
         request,
@@ -161,7 +209,9 @@ def project_delete(request, pk):
 
 @login_required
 def application_list(request):
+    positions = models.Position.objects.all()
     return render(
         request,
         'teams/applications.html',
-        {'selected': 'applications'})
+        {'selected': 'applications',
+         'positions': positions})

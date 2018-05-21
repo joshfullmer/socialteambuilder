@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
+{% if user.id == project_owner.id %}
 <div class="circle--actions--bar">
     <div class="bounds">
         <div class="grid-100">
@@ -9,13 +10,14 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <div class="bounds circle--page circle--article">
     <div class="grid-70">
         <div class="circle--article--header">
             <h4 class="circle--article--section">Project</h4>
             <h1 class="circle--article--title">{{ project.title }}</h1>
-            <p class="circle--article--byline">Project Owner: <a>Wendy McElroy</a></p>
+            <p class="circle--article--byline">Project Owner: <a href="{% if user.id == project_owner.id %}{% url 'teams:profile' %}{% else %}{% url 'teams:profile_pk' pk=project_owner.pk %}{% endif %}">{{ display_name }}</a></p>
         </div>
 
         <div class="circle--article--body">
@@ -26,16 +28,19 @@
             <h2>Positions</h2>
 
             <ul class="circle--group--list">
+                {% for position in positions %}
                 <li>
-                    <h3>iOS Developer</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    <h3>{{ position.position.title }}</h3>
+                    <p>{{ position.description }}</p>
                     <a class="button button-primary">Apply</a>
                 </li>
+                {% endfor %}
+                <!-- Keeping this around for formatting when applications are done.
                 <li>
                     <h3>Designer</h3>
                     <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
                     <a class="button button-primary button-inactive">Position Filled</a>
-                </li>
+                </li>-->
             </ul>
         </div>
 
