@@ -32,7 +32,7 @@
                 <li>
                     <h3>{{ position.position.title }}</h3>
                     <p>{{ position.description }}</p>
-                    {% if user.id != project_owner.id %}
+                    {% if user.id != project_owner.id and user.is_authenticated %}
                     <a href="{% url 'teams:apply' pk=project.pk project_position_pk=position.pk %}" class="button button-primary {% if position.id in user_apps or position.status == 'filled' %}button-inactive{% endif %}" {% if position.id in user_apps or position.status == 'filled' %}style="pointer-events:none;"{% endif %}>
                         {% if position.status == 'filled' %}
                             Position Filled

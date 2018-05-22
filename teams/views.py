@@ -91,7 +91,6 @@ def profile_detail(request):
          'projects': projects})
 
 
-@login_required
 def profile_detail_with_pk(request, pk):
     user = get_object_or_404(models.User, pk=pk)
     try:
@@ -132,14 +131,18 @@ def profile_edit(request):
         {'selected': 'profile', 'form': form, 'new': new})
 
 
-@login_required
 def project_detail(request, pk):
     project = get_object_or_404(models.Project, pk=pk)
     project_positions = models.ProjectPosition.objects.filter(project__pk=pk)
     project_owner = get_object_or_404(models.User, pk=project.user.pk)
-    user_applications = models.Application.objects.filter(user=request.user)
-    user_application_positions = [app.project_position.pk
-                                  for app in user_applications]
+    if request.user.is_authenticated:
+        user_applications = models.Application.objects.filter(
+            user=request.user)
+        user_application_positions = [app.project_position.pk
+                                      for app in user_applications]
+    else:
+        user_applications = None
+        user_application_positions = None
     try:
         display_name = project_owner.profile.full_name
     except ObjectDoesNotExist:
@@ -240,10 +243,17 @@ def apply(request, pk, project_position_pk):
 
 @login_required
 def application_list(request):
+    app_query = {'project_position__project__user': request.user}
+    if not request.GET.get('project') or request.GET.get('project') != 'all':
+        app_query['project_position__project__pk'] = request.GET.get('project')
+    if not request.GET.get('status') or request.GET.get('status') != 'all':
+        app_query['status'] = request.GET.get('status')
+    if not request.GET.get('position') or request.GET.get('position') != 'all':
+        app_query['project_position__position__pk'] = request.GET.get(
+            'position')
     projects = models.Project.objects.filter(user=request.user)
     positions = models.Position.objects.all()
-    applications = models.Application.objects.filter(
-        project_position__project__user=request.user)
+    applications = models.Application.objects.filter(**app_query)
     return render(
         request,
         'teams/applications.html',
