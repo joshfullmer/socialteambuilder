@@ -137,6 +137,9 @@ def project_detail(request, pk):
     project = get_object_or_404(models.Project, pk=pk)
     project_positions = models.ProjectPosition.objects.filter(project__pk=pk)
     project_owner = get_object_or_404(models.User, pk=project.user.pk)
+    user_applications = models.Application.objects.filter(user=request.user)
+    user_application_positions = [app.project_position.pk
+                                  for app in user_applications]
     try:
         display_name = project_owner.profile.full_name
     except ObjectDoesNotExist:
@@ -147,7 +150,8 @@ def project_detail(request, pk):
         {'project': project,
          'positions': project_positions,
          'project_owner': project_owner,
-         'display_name': display_name})
+         'display_name': display_name,
+         'user_apps': user_application_positions})
 
 
 @login_required
@@ -208,10 +212,66 @@ def project_delete(request, pk):
 
 
 @login_required
+def apply(request, pk, project_position_pk):
+    try:
+        models.Application.objects.get(
+            user=request.user,
+            project_position__pk=project_position_pk)
+    except ObjectDoesNotExist:
+        project_position = get_object_or_404(
+            models.ProjectPosition,
+            pk=project_position_pk)
+        models.Application.objects.create(
+            user=request.user,
+            project_position=project_position,
+            status='new')
+        messages.success(
+            request,
+            f"Thanks for applying for {project_position.position.title}")
+        return HttpResponseRedirect(reverse(
+            'teams:project',
+            args=[pk]))
+    else:
+        messages.warning(request, "You have already applied for this position")
+        return HttpResponseRedirect(reverse(
+            'teams:project',
+            args=[pk]))
+
+
+@login_required
 def application_list(request):
+    projects = models.Project.objects.filter(user=request.user)
     positions = models.Position.objects.all()
+    applications = models.Application.objects.filter(
+        project_position__project__user=request.user)
     return render(
         request,
         'teams/applications.html',
         {'selected': 'applications',
-         'positions': positions})
+         'projects': projects,
+         'positions': positions,
+         'applications': applications})
+
+
+@login_required
+def accept_application(request, pk):
+    application = get_object_or_404(models.Application, pk=pk)
+    application.status = "accepted"
+    application.project_position.status = "filled"
+    application.save()
+    (models.Application.objects
+        .filter(project_position=application.project_position)
+        .exclude(pk=pk)
+        .update(status="rejected"))
+    (models.ProjectPosition.objects
+        .filter(pk=application.project_position.pk)
+        .update(status="filled"))
+    return HttpResponseRedirect(reverse('teams:applications'))
+
+
+@login_required
+def reject_application(request, pk):
+    application = get_object_or_404(models.Application, pk=pk)
+    application.status = "rejected"
+    application.save()
+    return HttpResponseRedirect(reverse('teams:applications'))

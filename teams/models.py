@@ -54,11 +54,17 @@ class Project(models.Model):
 class ProjectPosition(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     position = models.ForeignKey(Position, on_delete=models.CASCADE)
+    applicants = models.ManyToManyField(User, through='Application')
     description = models.TextField()
+    status = models.CharField(max_length=25)  # open, filled
 
 
 class Application(models.Model):
-    pass
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project_position = models.ForeignKey(
+        ProjectPosition,
+        on_delete=models.CASCADE)
+    status = models.CharField(max_length=25)  # new, accepted, rejected
 
 
 class Notification(models.Model):

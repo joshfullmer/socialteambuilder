@@ -32,15 +32,19 @@
                 <li>
                     <h3>{{ position.position.title }}</h3>
                     <p>{{ position.description }}</p>
-                    <a class="button button-primary">Apply</a>
+                    {% if user.id != project_owner.id %}
+                    <a href="{% url 'teams:apply' pk=project.pk project_position_pk=position.pk %}" class="button button-primary {% if position.id in user_apps or position.status == 'filled' %}button-inactive{% endif %}" {% if position.id in user_apps or position.status == 'filled' %}style="pointer-events:none;"{% endif %}>
+                        {% if position.status == 'filled' %}
+                            Position Filled
+                        {% elif position.id in user_apps %}
+                            Application Received
+                        {% else %}
+                            Apply
+                        {% endif %}
+                    </a>
+                    {% endif %}
                 </li>
                 {% endfor %}
-                <!-- Keeping this around for formatting when applications are done.
-                <li>
-                    <h3>Designer</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                    <a class="button button-primary button-inactive">Position Filled</a>
-                </li>-->
             </ul>
         </div>
 
@@ -50,8 +54,9 @@
         <div class="circle--secondary--module">
             <h3>Project Needs</h3>
             <ul class="circle--link--list">
-                <li><a>iOS Developer</a></li>
-                <li><a>Designer</a></li>
+                {% for position in positions %}
+                <li><a>{{ position.position.title }}</a></li>
+                {% endfor %}
             </ul>
         </div>
 
