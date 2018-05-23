@@ -79,3 +79,44 @@ ProjectPositionFormSet = forms.modelformset_factory(
     models.ProjectPosition,
     form=ProjectPositionForm,
     can_delete=True)
+
+
+class SkillForm(forms.ModelForm):
+    id = forms.IntegerField(required=False)
+    name = forms.CharField(
+        label='',
+        widget=TextInput(attrs={'placeholder': 'Skill'}))
+
+    class Meta:
+        model = models.Skill
+        fields = ['name', ]
+
+
+SkillFormSet = forms.inlineformset_factory(
+    models.User,
+    models.Skill,
+    form=SkillForm,
+    extra=1,
+    can_delete=True)
+
+
+class OtherProjectForm(forms.ModelForm):
+    id = forms.IntegerField(required=False)
+    name = forms.CharField(
+        label='',
+        widget=TextInput(attrs={'placeholder': 'Project Name'}))
+    url = forms.URLField(
+        label='',
+        widget=TextInput(attrs={'placeholder': 'Project URL'}))
+
+    class Meta:
+        model = models.OtherProject
+        fields = ['name', 'url']
+
+
+OtherProjectFormSet = forms.inlineformset_factory(
+    models.User,
+    models.OtherProject,
+    form=OtherProjectForm,
+    extra=1,
+    can_delete=True)

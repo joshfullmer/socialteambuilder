@@ -11,6 +11,14 @@ from . import models, forms
 
 # Create your views here.
 def home(request, position_pk=None):
+    if request.user.is_authenticated:
+        user_applications = models.Application.objects.filter(
+            user=request.user)
+        user_application_positions = [app.project_position.pk
+                                      for app in user_applications]
+    else:
+        user_applications = None
+        user_application_positions = None
     positions = models.Position.objects.all()
     if position_pk:
         project_positions = models.ProjectPosition.objects.filter(
@@ -22,7 +30,8 @@ def home(request, position_pk=None):
         'teams/home.html',
         {'positions': positions,
          'position_pk': position_pk,
-         'project_positions': project_positions})
+         'project_positions': project_positions,
+         'user_apps': user_application_positions})
 
 
 def sign_up(request):
@@ -83,16 +92,22 @@ def profile_detail(request):
     except ObjectDoesNotExist:
         user_profile = None
     projects = models.Project.objects.filter(user=request.user)
+    skills = models.Skill.objects.filter(user=request.user)
+    other_projects = models.OtherProject.objects.filter(user=request.user)
     return render(
         request,
         'teams/profile.html',
         {'selected': 'profile',
          'user_profile': user_profile,
-         'projects': projects})
+         'projects': projects,
+         'skills': skills,
+         'other_projects': other_projects})
 
 
 def profile_detail_with_pk(request, pk):
     user = get_object_or_404(models.User, pk=pk)
+    skills = models.Skill.objects.filter(user=user)
+    other_projects = models.OtherProject.objects.filter(user=user)
     try:
         user_profile = models.UserProfile.objects.get(user=user)
     except ObjectDoesNotExist:
@@ -103,7 +118,9 @@ def profile_detail_with_pk(request, pk):
         'teams/user_profile.html',
         {'user': user,
          'user_profile': user_profile,
-         'projects': projects})
+         'projects': projects,
+         'skills': skills,
+         'other_projects': other_projects})
 
 
 @login_required
@@ -115,20 +132,53 @@ def profile_edit(request):
     except ObjectDoesNotExist:
         profile = None
     form = forms.UserProfileForm(instance=profile)
+    skill_formset = forms.SkillFormSet(instance=request.user)
+    other_project_formset = forms.OtherProjectFormSet(instance=request.user)
     if request.method == "POST":
         form = forms.UserProfileForm(
             request.POST,
             request.FILES,
             instance=profile)
-        if form.is_valid():
+        skill_formset = forms.SkillFormSet(request.POST)
+        other_project_formset = forms.OtherProjectFormSet(request.POST)
+        if (form.is_valid() and
+                skill_formset.is_valid() and
+                other_project_formset.is_valid()):
             user_profile = form.save(commit=False)
             user_profile.user = request.user
             user_profile.save()
+            skill_instances = skill_formset.save(commit=False)
+            print(skill_formset.deleted_objects)
+            for obj in skill_formset.deleted_objects:
+                obj.delete()
+            for each in skill_instances:
+                if not each.id:
+                    models.Skill.objects.create(
+                        user=request.user,
+                        name=each.name)
+                else:
+                    each.save()
+            other_project_instances = other_project_formset.save(commit=False)
+            for obj in other_project_formset.deleted_objects:
+                print(obj)
+                obj.delete()
+            for each in other_project_instances:
+                if not each.id:
+                    models.OtherProject.objects.create(
+                        user=request.user,
+                        name=each.name,
+                        url=each.url)
+                else:
+                    each.save()
             return HttpResponseRedirect(reverse('teams:profile'))
     return render(
         request,
         'teams/profile_edit.html',
-        {'selected': 'profile', 'form': form, 'new': new})
+        {'selected': 'profile',
+         'form': form,
+         'new': new,
+         'skill_formset': skill_formset,
+         'other_project_formset': other_project_formset})
 
 
 def project_detail(request, pk):

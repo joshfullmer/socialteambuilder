@@ -17,8 +17,7 @@ class Skill(models.Model):
     user = models.ForeignKey(
         User,
         related_name="skills",
-        on_delete=models.CASCADE,
-    )
+        on_delete=models.CASCADE,)
     name = models.CharField(max_length=50)
 
 

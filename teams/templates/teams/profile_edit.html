@@ -71,24 +71,34 @@
 
             <div class="circle--secondary--module">
                 <h4>My Skills</h4>
+                {{ skill_formset.management_form }}
                 <ul class="circle--clone--list">
+                    {% for f in skill_formset %}
                     <li>
-                        <input type="text" placeholder="Skill" />
+                        {{ f.id.as_hidden }}
+                        {{ f.name }}
                         <a class="circle--clone--add">Add Skill</a>
                         <a class="circle--clone--remove">Remove</a>
+                        {{ f.DELETE|cssclass:"hidden-delete" }}
                     </li>
+                    {% endfor %}
                 </ul>
             </div>
 
             <div class="circle--secondary--module">
                 <h4>My Projects</h4>
+                {{ other_project_formset.management_form }}
                 <ul class="circle--clone--list">
+                    {% for f in other_project_formset %}
                     <li>
-                        <input type="text" placeholder="Project Name" />
-                        <input type="text" placeholder="Project URL" />
+                        {{ f.id.as_hidden }}
+                        {{ f.name }}
+                        {{ f.url }}
                         <a class="circle--clone--add">Add Project</a>
                         <a class="circle--clone--remove">Remove</a>
+                        {{ f.DELETE|cssclass:"hidden-delete" }}
                     </li>
+                    {% endfor %}
                 </ul>
             </div>
         </div>

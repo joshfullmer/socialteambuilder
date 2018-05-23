@@ -7,12 +7,14 @@
             <h2>Projects</h2>
         </div>
         <div class="circle--fluid--cell circle--fluid--secondary">
+            {% if user.is_authenticated %}
             <a class="button button-primary icon-on-left" href="{% url 'teams:project_new' %}">
                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 13 13" style="enable-background:new 0 0 13 13;" xml:space="preserve" class="add">
                 <polygon points="7,6 7,0 6,0 6,6 0,6 0,7 6,7 6,13 7,13 7,7 13,7 13,6 "/>
                 </svg>
                 New Project
             </a>
+            {% endif %}
         </div>
     </div>
 
@@ -38,6 +40,8 @@
             </thead>
             <tbody>
                 {% for project_position in project_positions %}
+                {% if not user.is_authenticated or project_position.project.user != request.user and project_position.id not in user_apps %}
+                {% if project_position.status != 'filled' %}
                 <tr class="clickable-row" data-href="{% url 'teams:project' pk=project_position.project.pk %}">
                     <td>
                         <h3>{{ project_position.project.title }}</h3>
@@ -46,6 +50,8 @@
                         <span class="secondary-label">{{ project_position.position.title }}</span>
                     </td>
                 </tr>
+                {% endif %}
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
