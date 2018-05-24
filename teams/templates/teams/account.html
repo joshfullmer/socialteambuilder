@@ -6,8 +6,10 @@
 <div class="circle--actions--bar">
     <nav class="bounds">
         <ul class="circle--pill--list">
-            <li><a class="{% if selected == 'applications' %}selected{% endif %}" href="{% url 'teams:applications' %}">Applications</a></li>
-            <li><a class="{% if selected == 'profile' %}selected{% endif %}" href="{% url 'teams:profile' %}">Profile</a></li>
+            <li style="float:left"><a class="{% if selected == 'applications' %}selected{% endif %}" href="{% url 'teams:applications' %}">Applications</a></li>
+            <li style="float:left"><a class="{% if selected == 'profile' %}selected{% endif %}" href="{% url 'teams:profile' %}">Profile</a></li>
+            <li style="float:left"><a class="{% if selected == 'notifications' %}selected{% endif %}" href="{% url 'teams:notifications' %}">Notifications</a></li>
+            <li style="float:right"><a class="" href="{% url 'teams:logout' %}">Sign Out</a></li>
         </ul>
     </nav>
 </div>

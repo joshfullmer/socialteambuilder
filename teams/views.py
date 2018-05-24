@@ -1,12 +1,16 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import EmailMessage
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 
 from . import models, forms
+from .tokens import account_activation_token
 
 
 # Create your views here.
@@ -17,7 +21,6 @@ def home(request, position_pk=None):
         user_application_positions = [app.project_position.pk
                                       for app in user_applications]
     else:
-        user_applications = None
         user_application_positions = None
     positions = models.Position.objects.all()
     if position_pk:
@@ -34,13 +37,54 @@ def home(request, position_pk=None):
          'user_apps': user_application_positions})
 
 
+def search(request):
+    query = request.GET.get('q')
+    print(query)
+    if request.user.is_authenticated:
+        user_applications = models.Application.objects.filter(
+            user=request.user)
+        user_application_positions = [app.project_position.pk
+                                      for app in user_applications]
+    else:
+        user_application_positions = None
+    positions = models.Position.objects.all()
+    project_positions = (models.ProjectPosition.objects.filter(
+        project__title__contains=query) |
+        models.ProjectPosition.objects.filter(
+            project__description__contains=query))
+    return render(
+        request,
+        'teams/home.html',
+        {'positions': positions,
+         'project_positions': project_positions,
+         'user_apps': user_application_positions,
+         'query': query})
+
+
 def sign_up(request):
-    form = forms.PlaceholderSignUpForm()
+    form = forms.SignUpForm()
     if request.method == 'POST':
-        form = forms.PlaceholderSignUpForm(data=request.POST)
+        form = forms.SignUpForm(data=request.POST)
         if form.is_valid():
-            form.save()
-            user = authenticate(
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+            site = get_current_site(request)
+            mail_subject = "Activate your Circle account."
+            message = render_to_string(
+                'teams/email_verification.html',
+                {'user': user,
+                 'domain': site.domain,
+                 'uid': user.pk,
+                 'token': account_activation_token.make_token(user)}
+            )
+            email = EmailMessage(mail_subject, message, to=["test@test.com"])
+            email.send()
+            messages.success(
+                request,
+                "Thanks for signing up!  Please check your email and verify.")
+            return HttpResponseRedirect(reverse('teams:home'))
+            """user = authenticate(
                 username=form.cleaned_data['username'],
                 password=form.cleaned_data['password1']
             )
@@ -48,22 +92,37 @@ def sign_up(request):
             messages.success(
                 request,
                 "You're now a user! You've been signed in, too."
-            )
+            )"""
             return HttpResponseRedirect(reverse('teams:profile'))
     return render(request, 'teams/sign_up.html', {'form': form})
 
 
+def activate(request, uid, token):
+    try:
+        user = models.User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, ObjectDoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return HttpResponseRedirect(reverse('teams:home'))
+    else:
+        messages.error(request, "Activation link is invalid.")
+        return HttpResponseRedirect(reverse('teams:home'))
+
+
 def login_user(request):
-    form = forms.PlaceholderLoginForm()
+    form = forms.LoginForm()
     if request.method == 'POST':
-        form = forms.PlaceholderLoginForm(data=request.POST)
+        form = forms.LoginForm(data=request.POST)
         if form.is_valid():
             if form.user_cache is not None:
                 user = form.user_cache
                 if user.is_active:
                     login(request, user)
                     return HttpResponseRedirect(
-                        reverse('teams:profile')  # TODO: go to profile
+                        reverse('teams:profile')
                     )
                 else:
                     messages.error(
@@ -294,15 +353,16 @@ def apply(request, pk, project_position_pk):
 @login_required
 def application_list(request):
     app_query = {'project_position__project__user': request.user}
-    if not request.GET.get('project') or request.GET.get('project') != 'all':
+    if request.GET.get('project') and request.GET.get('project') != 'all':
         app_query['project_position__project__pk'] = request.GET.get('project')
-    if not request.GET.get('status') or request.GET.get('status') != 'all':
+    if request.GET.get('status') and request.GET.get('status') != 'all':
         app_query['status'] = request.GET.get('status')
-    if not request.GET.get('position') or request.GET.get('position') != 'all':
+    if request.GET.get('position') and request.GET.get('position') != 'all':
         app_query['project_position__position__pk'] = request.GET.get(
             'position')
     projects = models.Project.objects.filter(user=request.user)
     positions = models.Position.objects.all()
+    print(app_query)
     applications = models.Application.objects.filter(**app_query)
     return render(
         request,
@@ -323,9 +383,29 @@ def accept_application(request, pk):
         .filter(project_position=application.project_position)
         .exclude(pk=pk)
         .update(status="rejected"))
+    rejected_apps = (models.Application.objects.filter(
+        project_position=application.project_position,
+        status="rejected")
+    ).exclude(pk=pk)
+    for app in rejected_apps:
+        try:
+            models.Notification.objects.get(
+                user=app.user,
+                project_position=app.project_position,
+                response='rejected')
+        except ObjectDoesNotExist:
+            models.Notification.objects.create(
+                user=app.user,
+                project_position=app.project_position,
+                response="rejected")
     (models.ProjectPosition.objects
         .filter(pk=application.project_position.pk)
         .update(status="filled"))
+    models.Notification.objects.create(
+        user=application.user,
+        status='unread',
+        response='approved',
+        project_position=application.project_position)
     return HttpResponseRedirect(reverse('teams:applications'))
 
 
@@ -334,4 +414,32 @@ def reject_application(request, pk):
     application = get_object_or_404(models.Application, pk=pk)
     application.status = "rejected"
     application.save()
+    models.Notification.objects.create(
+        user=application.user,
+        status='unread',
+        response='rejected',
+        project_position=application.project_position)
     return HttpResponseRedirect(reverse('teams:applications'))
+
+
+@login_required
+def notifications(request):
+    notifications = models.Notification.objects.filter(user=request.user)
+    status = request.GET.get('status', 'unread')
+    if status != 'all':
+        notifications = notifications.filter(status=status)
+    return render(
+        request,
+        "teams/notifications.html",
+        {'selected': 'notifications',
+         'notifications': notifications,
+         'status': status})
+
+
+@login_required
+def mark_as_read(request):
+    notifications = models.Notification.objects.filter(user=request.user)
+    for notif in notifications:
+        notif.status = "read"
+        notif.save()
+    return HttpResponseRedirect(reverse('teams:notifications'))

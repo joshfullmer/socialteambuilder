@@ -5,7 +5,7 @@ from django.forms.widgets import PasswordInput, TextInput, Textarea
 from . import models
 
 
-class PlaceholderSignUpForm(UserCreationForm):
+class SignUpForm(UserCreationForm):
     username = forms.CharField(
         label='',
         widget=TextInput(attrs={'placeholder': 'Username'}))
@@ -17,7 +17,7 @@ class PlaceholderSignUpForm(UserCreationForm):
         widget=PasswordInput(attrs={'placeholder': 'Verify Password'}))
 
 
-class PlaceholderLoginForm(AuthenticationForm):
+class LoginForm(AuthenticationForm):
     username = forms.CharField(
         label='',
         widget=TextInput(attrs={'placeholder': 'Username'}))

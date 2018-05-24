@@ -55,7 +55,7 @@
             </thead>
             <tbody>
                 {% for app in applications %}
-                <tr class="clickable-row" data-href="profile.html">
+                <tr class="clickable-row" data-href="{% url 'teams:project' pk=app.project_position.project.pk %}">
                     <td>
                         <a href="{% url 'teams:profile_pk' pk=app.user.pk %}">
                             <h3>{% if app.user.profile.full_name %}{{ app.user.profile.full_name }}{% else %}{{ app.user.username }}{% endif %}</h3>

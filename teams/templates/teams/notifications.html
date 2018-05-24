@@ -1,0 +1,59 @@
+{% extends "teams/account.html" %}
+
+{% block account_tab %}
+<div class="bounds circle--page">
+
+    <div class="circle--page--header circle--fluid">
+        <div class="circle--fluid--cell circle--fluid--primary">
+            <h2>Notifications</h2>
+        </div>
+        <div class="circle--fluid--cell circle--fluid--secondary">
+            <a class="button button-primary icon-on-left" href="{% url 'teams:mark_as_read' %}">
+                Mark All Read
+            </a>
+        </div>
+    </div>
+
+    <div class="grid-25">
+        <div class="circle--filter circle--secondary--module">
+            <h4>Status</h4>
+            <ul class="circle--filter--list">
+                <li><a href="{% url 'teams:notifications' %}" class="{% if status == 'unread' %}selected{% endif %}">Unread</a></li>
+                <li><a href="{% url 'teams:notifications' %}?status=all" class="{% if status == 'all' %}selected{% endif %}">All</a></li>
+                <li><a href="{% url 'teams:notifications' %}?status=read" class="{% if status == 'read' %}selected{% endif %}">Read</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="grid-70 grid-push-5">
+        <table class="u-full-width circle--table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Position</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notification in notifications %}
+                <tr class="clickable-row" data-href="{% url 'teams:project' pk=notification.project_position.project.pk %}">
+                    <td>
+                        <a href="">
+                            <h3>{{ notification.project_position.project.title }}</h3>
+                        </a>
+                    </td>
+                    <td class="circle--cell--right">
+                        <span class="secondary-label">{{ notification.project_position.position.title }}</span>
+                    </td>
+                    <td>
+                        <span class="secondary-label">{{ notification.response|capfirst }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+{% endblock %}

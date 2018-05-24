@@ -67,4 +67,9 @@ class Application(models.Model):
 
 
 class Notification(models.Model):
-    pass
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=25)  # read, unread
+    response = models.CharField(max_length=25)  # accepted, rejected
+    project_position = models.ForeignKey(
+        ProjectPosition,
+        on_delete=models.CASCADE)

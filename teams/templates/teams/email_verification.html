@@ -1,0 +1,5 @@
+{% autoescape off %}
+Hi {{ user.username }},
+Please click on the link to verify your email address and login,
+http://{{ domain }}{% url 'teams:activate' uid=uid token=token %}
+{% endautoescape %}
