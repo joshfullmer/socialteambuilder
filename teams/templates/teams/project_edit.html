@@ -23,6 +23,7 @@
             <div class="circle--article--body">
                 {{ form.title|cssclass:"circle--input--h1" }}
                 {{ form.description }}
+                <span>This field is <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank">Markdown</a> enabled!</span>
             </div>
 
             <!-- Test -->
@@ -35,6 +36,8 @@
                         {{ f.id.as_hidden }}
                         {{ f.position|cssclass:"circle--input--h3" }}
                         {{ f.description }}
+                        <p><span>This field is <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank">Markdown</a> enabled!</span></p>
+                        {{ f.duration }}
                         <a class="circle--clone--add">Add Position</a>
                         <a class="circle--clone--remove">Remove</a>
                         {{ f.DELETE|cssclass:"hidden-delete" }}

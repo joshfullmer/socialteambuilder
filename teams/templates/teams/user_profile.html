@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 
 {% load static %}
+{% load team_extras %}
 
 {% block title %}{{ user.username }}'s Profile | {{ block.super }}{% endblock %}
 
@@ -16,7 +17,9 @@
         <h1>{% if user_profile %}{{ user_profile.full_name }}{% else %}{{ user.username }}{% endif %}</h1>
         <div class="circle--article--body">
             {% if user_profile %}
-                {{ user_profile.description }}
+                {% autoescape off %}
+                {{ user_profile.description|to_markdown }}
+                {% endautoescape %}
             {% else %}
             <p>It looks like this user hasn't created their user profile yet.</p>
             {% endif %}

@@ -1,5 +1,7 @@
 {% extends "layout.html" %}
 
+{% load team_extras %}
+
 {% block content %}
 {% if user.id == project_owner.id %}
 <div class="circle--actions--bar">
@@ -21,7 +23,9 @@
         </div>
 
         <div class="circle--article--body">
-            {{ project.description }}
+            {% autoescape off %}
+            {{ project.description|to_markdown }}
+            {% endautoescape %}
         </div>
 
         <div class="circle--project--positions">
@@ -31,7 +35,14 @@
                 {% for position in positions %}
                 <li>
                     <h3>{{ position.position.title }}</h3>
-                    <p>{{ position.description }}</p>
+                    <p>
+                        {% autoescape off %}
+                        {{ position.description|to_markdown }}
+                        {% endautoescape %}
+                    </p>
+                    <p>
+                        <strong>Duration</strong>: {{ position.duration }}
+                    </p>
                     {% if user.id != project_owner.id and user.is_authenticated %}
                     <a href="{% url 'teams:apply' pk=project.pk project_position_pk=position.pk %}" class="button button-primary {% if position.id in user_apps or position.status == 'filled' %}button-inactive{% endif %}" {% if position.id in user_apps or position.status == 'filled' %}style="pointer-events:none;"{% endif %}>
                         {% if position.status == 'filled' %}

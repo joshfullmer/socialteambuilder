@@ -69,10 +69,13 @@ class ProjectPositionForm(forms.ModelForm):
     description = forms.CharField(
         label='',
         widget=Textarea(attrs={'placeholder': 'Position description...'}))
+    duration = forms.CharField(
+        label='',
+        widget=TextInput(attrs={'placeholder': 'Expected participation...'}))
 
     class Meta:
         model = models.ProjectPosition
-        fields = ['position', 'description']
+        fields = ['position', 'description', 'duration']
 
 
 ProjectPositionFormSet = forms.modelformset_factory(

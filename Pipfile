@@ -9,6 +9,7 @@ name = "pypi"
 
 django = "*"
 pillow = "*"
+markdown = "*"
 
 
 [dev-packages]

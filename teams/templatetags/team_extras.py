@@ -1,4 +1,5 @@
 from django import template
+from markdown import markdown
 
 from teams import models
 
@@ -20,3 +21,8 @@ def notification_count(user):
     return models.Notification.objects.filter(
         user=user, status="unread"
     ).count()
+
+
+@register.filter(name='to_markdown')
+def to_markdown(text):
+    return markdown(text)

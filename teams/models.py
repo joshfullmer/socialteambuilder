@@ -56,6 +56,7 @@ class ProjectPosition(models.Model):
     applicants = models.ManyToManyField(User, through='Application')
     description = models.TextField()
     status = models.CharField(max_length=25)  # open, filled
+    duration = models.CharField(max_length=100)
 
 
 class Application(models.Model):
