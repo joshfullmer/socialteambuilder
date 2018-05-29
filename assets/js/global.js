@@ -19,7 +19,8 @@ $( document ).ready(function() {
         $(this).attr('name', $(this).attr('name').replace(/\d+/g, lastId + 1));
       }
     });
-    $("input#id_form-TOTAL_FORMS").val(parseInt($("input#id_form-TOTAL_FORMS").val())+1);
+    var total_forms = list.siblings("input[id$='TOTAL_FORMS']");
+    total_forms.val(parseInt(total_forms.val())+1);
   });
 
   $(".circle--clone--list").on("click", "li:not(:only-child) .circle--clone--remove", function(){
@@ -28,8 +29,9 @@ $( document ).ready(function() {
       parent.children('input.hidden-delete').prop('checked', true);
       parent.hide();
     } else {
+      var total_forms = $(this).parentsUntil("div.circle--secondary--module").siblings("input[id$='TOTAL_FORMS']");
+      total_forms.val(parseInt(total_forms.val())-1);
       parent.remove();
-      $("input#id_form-TOTAL_FORMS").val(parseInt($("input#id_form-TOTAL_FORMS").val())-1);
     };
   });
 

@@ -61,7 +61,7 @@
                 <li><a href="{% url 'teams:sign_up' %}">Sign Up</a></li>
                 <li><a href="{% url 'teams:login' %}">Login</a></li>
               {% else %}
-                <li><a href="{% url 'teams:profile' %}">{{ user.username }}</a></li>
+                <li><a href="{% url 'teams:profile' %}">{{ request.user.username }}</a></li>
                 <li>
                   <a href="{% url 'teams:notifications' %}">
                     <div class="notification_button">

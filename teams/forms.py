@@ -96,7 +96,7 @@ class SkillForm(forms.ModelForm):
 
 
 SkillFormSet = forms.inlineformset_factory(
-    models.User,
+    models.UserProfile,
     models.Skill,
     form=SkillForm,
     extra=1,
@@ -118,7 +118,7 @@ class OtherProjectForm(forms.ModelForm):
 
 
 OtherProjectFormSet = forms.inlineformset_factory(
-    models.User,
+    models.UserProfile,
     models.OtherProject,
     form=OtherProjectForm,
     extra=1,

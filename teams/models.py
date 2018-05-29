@@ -15,8 +15,8 @@ class UserProfile(models.Model):
 
 
 class Skill(models.Model):
-    user = models.ForeignKey(
-        User,
+    user_profile = models.ForeignKey(
+        UserProfile,
         related_name="skills",
         on_delete=models.CASCADE,)
     name = models.CharField(max_length=50)
@@ -24,8 +24,8 @@ class Skill(models.Model):
 
 class OtherProject(models.Model):
     """Only for the user profile, not affiliated with Circle projects"""
-    user = models.ForeignKey(
-        User,
+    user_profile = models.ForeignKey(
+        UserProfile,
         related_name="other_projects",
         on_delete=models.CASCADE,)
     name = models.CharField(max_length=50)

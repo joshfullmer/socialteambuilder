@@ -156,8 +156,9 @@ def profile_detail(request):
     except ObjectDoesNotExist:
         user_profile = None
     projects = models.Project.objects.filter(user=request.user)
-    skills = models.Skill.objects.filter(user=request.user)
-    other_projects = models.OtherProject.objects.filter(user=request.user)
+    skills = models.Skill.objects.filter(user_profile__user=request.user)
+    other_projects = models.OtherProject.objects.filter(
+        user_profile__user=request.user)
     return render(
         request,
         'teams/profile.html',
@@ -196,29 +197,35 @@ def profile_edit(request):
     except ObjectDoesNotExist:
         profile = None
     form = forms.UserProfileForm(instance=profile)
-    skill_formset = forms.SkillFormSet(instance=request.user)
-    other_project_formset = forms.OtherProjectFormSet(instance=request.user)
+    skill_formset = forms.SkillFormSet(instance=request.user.profile)
+    other_project_formset = forms.OtherProjectFormSet(
+        instance=request.user.profile)
     if request.method == "POST":
         form = forms.UserProfileForm(
             request.POST,
             request.FILES,
             instance=profile)
-        skill_formset = forms.SkillFormSet(request.POST)
-        other_project_formset = forms.OtherProjectFormSet(request.POST)
+        skill_formset = forms.SkillFormSet(
+            request.POST,
+            instance=request.user.profile)
+        other_project_formset = forms.OtherProjectFormSet(
+            request.POST,
+            instance=request.user.profile)
         if (form.is_valid() and
                 skill_formset.is_valid() and
                 other_project_formset.is_valid()):
             user_profile = form.save(commit=False)
             user_profile.user = request.user
             user_profile.save()
-            form.save_m2m()
             skill_instances = skill_formset.save(commit=False)
+            print(skill_formset.deleted_objects)
             for obj in skill_formset.deleted_objects:
+                print(obj)
                 obj.delete()
             for each in skill_instances:
                 if not each.id:
                     models.Skill.objects.create(
-                        user=request.user,
+                        user_profile=request.user.profile,
                         name=each.name)
                 else:
                     each.save()
@@ -229,7 +236,7 @@ def profile_edit(request):
             for each in other_project_instances:
                 if not each.id:
                     models.OtherProject.objects.create(
-                        user=request.user,
+                        user_profile=request.user.profile,
                         name=each.name,
                         url=each.url)
                 else:
@@ -304,9 +311,11 @@ def project_edit(request, pk=None):
                     models.ProjectPosition.objects.create(
                         project=new_project,
                         position=each.position,
-                        description=each.description)
+                        description=each.description,
+                        duration=each.duration)
                 else:
                     each.save()
+            formset.save_m2m()
             messages.success(
                 request,
                 f"Project \"{new_project.title}\" "
