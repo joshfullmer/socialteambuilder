@@ -20,9 +20,14 @@
                 {% autoescape off %}
                 {{ user_profile.description|to_markdown }}
                 {% endautoescape %}
+                <h3>Positions I Can Fill</h3>
+                {% for position in user_profile.positions.all %}
+                    <p>{{ position.title }}</p>
+                {% endfor %}
             {% else %}
             <p>It looks like this user hasn't created their user profile yet.</p>
             {% endif %}
+            
         </div>
 
         <h2>Past Projects</h2>

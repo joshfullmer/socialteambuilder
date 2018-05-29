@@ -11,6 +11,7 @@ class UserProfile(models.Model):
     full_name = models.CharField(max_length=100)
     description = models.TextField()
     avatar = models.ImageField(default='', upload_to='./avatars')
+    positions = models.ManyToManyField('Position')
 
 
 class Skill(models.Model):

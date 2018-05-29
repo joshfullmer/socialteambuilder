@@ -22,6 +22,10 @@
                 {% autoescape off %}
                 {{ user_profile.description|to_markdown }}
                 {% endautoescape %}
+                <h3>Positions I Can Fill</h3>
+                {% for position in user_profile.positions.all %}
+                    <p>{{ position.title }}</p>
+                {% endfor %}
             {% else %}
             <p>It looks like you haven't created your user profile yet.  Click the Edit button above to add your name, skills, and past projects. </p>
             {% endif %}

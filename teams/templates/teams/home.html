@@ -22,7 +22,10 @@
         <div class="circle--filter circle--secondary--module">
             <h4>Project Needs</h4>
             <ul class="circle--filter--list">
-                <li><a href="{% url 'teams:home' %}" class="{% if not position_pk %}selected{% endif %}">All Needs</a></li>
+                <li><a href="{% url 'teams:home' %}" class="{% if not position_pk and not fillable %}selected{% endif %}">All Needs</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'teams:fillable' fillable='fillable' %}" class="{% if fillable %}selected{% endif %}">Positions I Can Fill</a></li>
+                {% endif %}
                 {% for position in positions %}
                 <li><a href="{% url 'teams:position_filter' position_pk=position.pk %}" class="{% if position_pk == position.pk %}selected{% endif %}">{{ position.title }}</a></li>
                 {% endfor %}

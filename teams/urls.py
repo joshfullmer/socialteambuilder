@@ -34,6 +34,7 @@ urlpatterns = [
          views.apply,
          name='apply'),
     path('positions/<int:position_pk>', views.home, name='position_filter'),
+    path('positions/<fillable>', views.home, name='fillable'),
     path('search', views.search, name='search'),
     path('', views.home, name='home'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

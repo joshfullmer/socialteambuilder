@@ -14,7 +14,7 @@ from .tokens import account_activation_token
 
 
 # Create your views here.
-def home(request, position_pk=None):
+def home(request, position_pk=None, fillable=None):
     if request.user.is_authenticated:
         user_applications = models.Application.objects.filter(
             user=request.user)
@@ -28,11 +28,16 @@ def home(request, position_pk=None):
             position__pk=position_pk)
     else:
         project_positions = models.ProjectPosition.objects.all()
+    if fillable and request.user.is_authenticated:
+        user_profile = models.UserProfile.objects.get(user=request.user)
+        project_positions = project_positions.filter(
+            position__in=user_profile.positions.all())
     return render(
         request,
         'teams/home.html',
         {'positions': positions,
          'position_pk': position_pk,
+         'fillable': fillable,
          'project_positions': project_positions,
          'user_apps': user_application_positions})
 
@@ -206,8 +211,8 @@ def profile_edit(request):
             user_profile = form.save(commit=False)
             user_profile.user = request.user
             user_profile.save()
+            form.save_m2m()
             skill_instances = skill_formset.save(commit=False)
-            print(skill_formset.deleted_objects)
             for obj in skill_formset.deleted_objects:
                 obj.delete()
             for each in skill_instances:

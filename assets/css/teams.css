@@ -54,3 +54,8 @@ input.hidden-delete {
     top: 0;
     right: 0;
   }
+
+#id_positions {
+    height: 180px;
+    appearance: none;
+}

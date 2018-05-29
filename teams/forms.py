@@ -39,7 +39,7 @@ class UserProfileForm(forms.ModelForm):
 
     class Meta:
         model = models.UserProfile
-        fields = ['full_name', 'description', 'avatar']
+        fields = ['full_name', 'description', 'avatar', 'positions']
 
 
 class ProjectForm(forms.ModelForm):
