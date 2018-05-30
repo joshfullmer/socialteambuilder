@@ -219,9 +219,7 @@ def profile_edit(request):
             user_profile.save()
             form.save_m2m()
             skill_instances = skill_formset.save(commit=False)
-            print(skill_formset.deleted_objects)
             for obj in skill_formset.deleted_objects:
-                print(obj)
                 obj.delete()
             for each in skill_instances:
                 if not each.id:
@@ -232,7 +230,6 @@ def profile_edit(request):
                     each.save()
             other_project_instances = other_project_formset.save(commit=False)
             for obj in other_project_formset.deleted_objects:
-                print(obj)
                 obj.delete()
             for each in other_project_instances:
                 if not each.id:
